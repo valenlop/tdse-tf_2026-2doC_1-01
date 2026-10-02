@@ -1,4 +1,4 @@
-# FIUBA - Electrónica - Taller de Sistemas Embebidos
+# FIUBA - Electrónica - Taller de Sistemas Embebidos 
 ## Trabajo Final - 2026-2doC - 1-01: Título del Trabajo Final
 ### Bitácora de Entregas
 | N° | Detalles | Fecha | Deadline |
