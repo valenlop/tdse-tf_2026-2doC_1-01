@@ -45,31 +45,13 @@ El sistema operará bajo una arquitectura de ejecutor cíclico con demoras no bl
 
 #### 1.3.1 Diagrama en Bloques del Sistema
 
-```text
-               +-------------------------------------------------------+
-               |                  FUENTES DE ALIMENTACIÓN              |
-               |                USB Mini-B (5V DC / GND)               |
-               +---------------------------+---------------------------+
-                                           |
-                                           v
-+---------------------+        +-----------------------+        +----------------------+
-|  SENSORES ANALÓGICOS|        |  MICROCONTROLADOR     |        | INTERFAZ DE USUARIO  |
-|  - Sensor LM35 (ADC)|------> |  STM32 NUCLEO-F103RB  |------> | - Display LCD 16x2   |
-|  - Fotoresistor LDR |        |                       |        |   (Adaptador I2C)    |
-+---------------------+        | - Ejecutor Cíclico    |        | - LED RGB / Semáforo |
-                               |   (< 1ms)             |        +----------------------+
-+---------------------+        | - FSM No Bloqueante   |
-|   ENTRADAS TECLADO  |        |                       |        +----------------------+
-|  - Teclado 1x4      |------> | - Timers & ADC        |------->|   ACTUADORES Y ALARM|
-|  - Dip Switch (4P)  |        +-----------+-----------+        | - Módulo Relé 5V DC  |
-+---------------------+                    |                    |   (Calefactor)       |
-                                           |                    | - Buzzer Activo      |
-+---------------------+                    |                    +----------------------+
-| COMUNICACIÓN Y MEM. |                    |
-| - Módulo HM-10 (BLE)|<-------------------+
-| - Memoria EEPROM I2C|<-------------------+
-+---------------------+
-```
+En la Figura 1 se detalla la arquitectura de hardware del sistema, donde la unidad central de procesamiento (STM32 Nucleo-F103RB) se vincula con los periféricos de entrada (LM35, LDR, Teclado 1x4, Dip Switch), comunicación y memoria (Bluetooth HM-10, EEPROM I2C, LCD 16x2) y los actuadores de señalización y potencia (LED RGB/Semáforo, Buzzer, Relé de calefacción).
+
+<p align="center">
+  <img src="diagrama_en_bloques.png" alt="Diagrama en bloques del sistema" width="85%">
+</p>
+
+<p align="center"><em>Figura 1: Diagrama en bloques del sistema de monitoreo y control</em></p>
 
 ---
 
