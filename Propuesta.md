@@ -7,7 +7,7 @@
 
 ## 1. Propuesta de Trabajo Final
 
-### 1.1 Resumen
+### 1.1 Resumen 
 El presente proyecto consiste en el diseño e implementación de un sistema embebido de control ambiental y supervisión para entornos de incubación o germinación en lazo cerrado (control ON/OFF con histéresis). El sistema adquiere señales analógicas de temperatura ($T$) mediante un sensor LM35 y de iluminancia ($L$) mediante una fotoresistencia (LDR). A partir de los parámetros definidos por el usuario, el microcontrolador gestiona la activación de una etapa de calefacción comandada por relé, emite señalizaciones ópticas y acústicas de estado, y persiste las configuraciones críticas en una memoria EEPROM externa mediante protocolo I2C.
 
 El dispositivo dispone de una interfaz local compuesta por un teclado de membrana $1 \times 4$, dip-switches de configuración y un display LCD $16 \times 2$ con interfaz I2C. Asimismo, integra un módulo de comunicación inalambrica Bluetooth Low Energy (HM-10) para telemetría en tiempo real y supervisión remota desde una aplicación móvil.
