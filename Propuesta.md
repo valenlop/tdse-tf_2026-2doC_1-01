@@ -75,7 +75,7 @@ El sistema operará bajo una arquitectura de ejecutor cíclico con demoras no bl
 
 ## 2. Análisis y Definición de Requisitos
 
-### 2.1 Análisis de Competidore Comercial / Estado del Arte
+### 2.1 Análisis de Competidores Comerciales / Estado del Arte
 
 Para contextualizar el prototipo frente a soluciones de mercado, se analizaron tres equipos comerciales de control ambiental e incubación:
 
