@@ -48,7 +48,7 @@ El sistema operará bajo una arquitectura de ejecutor cíclico con demoras no bl
 En la Figura 1 se detalla la arquitectura de hardware del sistema, donde la unidad central de procesamiento (STM32 Nucleo-F103RB) se vincula con los periféricos de entrada (LM35, LDR, Teclado 1x4, Dip Switch), comunicación y memoria (Bluetooth HM-10, EEPROM I2C, LCD 16x2) y los actuadores de señalización y potencia (LED RGB/Semáforo, Buzzer, Relé de calefacción).
 
 <p align="center">
-  <img src="diagrama_en_bloques.png" alt="Diagrama en bloques del sistema" width="85%">
+  <img src="Diagrama_de_bloques.jpg" alt="Diagrama en bloques del sistema" width="85%">
 </p>
 
 <p align="center"><em>Figura 1: Diagrama en bloques del sistema de monitoreo y control</em></p>
