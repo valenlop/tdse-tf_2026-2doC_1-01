@@ -1,6 +1,17 @@
+<p align="center">
+  <img src="fiuba.png" alt="Logo oficial de la Facultad de Ingeniería - UBA" width="40%">
+</p>
+
 # Propuesta de Trabajo Final: Estación de Control Ambiental
 
 **Materia:** Taller de Sistemas Embebidos (TdSE)  
+### Integrantes:
+| Padrón | Apellidos, Nombres |
+| :----- | :--------------------- |
+| 112130 | Fernendez Luna, Felipe Mateo |
+| 111700 | Lopez Ruvira, Valentin |
+| 111821 | Yashnyk, Kira |
+
 **Placa Base:** STM32 NUCLEO-F103RB  
 
 ---
@@ -16,12 +27,16 @@ El dispositivo dispone de accionamiento manual a través de un teclado de membra
 
 ### 1.2 Matriz de Decisión y Ponderación de Alternativas
 
-Para definir el proyecto a realizar, se evaluaron tres alternativas tecnológicas considerando la viabilidad de implementación con los componentes disponibles y el cumplimiento de los requisitos obligatorios de la asignatura.
+Para definir el proyecto a realizar, se evaluaron tres alternativas tecnológicas considerando la viabilidad de implementación con los componentes disponibles y el cumplimiento de los requisitos obligatorios de la asignatura. En la tabla 1 se observan los valores parciales y finales.
+
+
 
 * **Criterios de ponderación (Escala 1 a 10):**
   * **C1: Cumplimiento Requisitos TdSE (Peso: 40%)** - Presencia de hardware obligatorio.
   * **C2: Disponibilidad de Hardware (Peso: 30%)** - Factibilidad de armado sin requerir componentes.
   * **C3: Aplicabilidad Práctica (Peso: 30%)** - Utilidad del prototipo en escenarios del mundo real.
+
+<p align="center"><strong>Tabla 1:</strong> Alternativas tecnologicas <em>.</em></p>
 
 | Alternativa | C1 | C2 | C3 | Puntaje Ponderado |
 | :--- | :---: | :---: | :---: | :---: |
@@ -60,15 +75,19 @@ En la Figura 1 se detalla la arquitectura de hardware del sistema, donde la unid
 
 Para contextualizar el prototipo frente a soluciones de mercado, se analizaron tres equipos comerciales de control ambiental:
 
-1. **Incubadora Comercial Biolight IC-100:** Equipo industrial de alta precisión. Posee control PID, pantalla táctil y comunicación Modbus. *Desventaja:* Elevado costo económico y nula conectividad inalambrica BLE directa a smartphones de consumo.
-2. **Termostato Digital STC-1000:** Dispositivo de control de temperatura ON/OFF estándar en el mercado local. *Desventaja:* Interface extremadamente limitada (7 segmentos), sin capacidad de registro en memoria persistente externa, sin medición de luz ni comunicación inalámbrica.
-3. **Controlador Tuya Smart Wi-Fi:** Módulo de automatización para domótica. *Desventaja:* Dependencia total de servidores en la nube e internet, sin interfaz física local completa (teclado/LCD) para operarlo en modo *standalone* sin conectividad.
+1. **[Incubadora Comercial Biolight IC-100](https://www.efelab.com/incubadora-indicadores-biologicos/):** Equipo industrial de alta precisión. Posee control PID, pantalla táctil y comunicación Modbus. *Desventaja:* Elevado costo económico y nula conectividad inalámbrica BLE directa a smartphones de consumo.
+2. **[Termostato Digital STC-1000](https://www.elitecheu.com/es/blogs/elitech-product-user-manual/elitech-stc-1000x-tempeprature-controller-user-manual):** Dispositivo de control de temperatura ON/OFF estándar en el mercado local. *Desventaja:* Interfaz extremadamente limitada (7 segmentos), sin capacidad de registro en memoria persistente externa, sin medición de luz ni comunicación inalámbrica.
+3. **[Controlador Tuya Smart Wi-Fi]([https://developer.tuya.com/](https://manuals.plus/ae/1005006692606237)):** Módulo de automatización para domótica. *Desventaja:* Dependencia total de servidores en la nube e internet, sin interfaz física local completa (teclado/LCD) para operarlo en modo *standalone* sin conectividad.
 
 **Valor Agregado del Prototipo:** El sistema desarrollado integra operabilidad dual (autónoma local mediante LCD/Teclado y remota mediante BLE HM-10), memoria no volátil local de parámetros vía I2C y monitoreo multivariable (temperatura y luz) en una plataforma embebida de bajo costo.
 
 ---
 
 ### 2.2 Tabla de Requisitos del Sistema
+
+En la Tabla 2 se presentan los requisitos funcionales y no funcionales que definen el comportamiento, las especificaciones operativas y las restricciones técnicas del sistema desarrollado.
+
+<p align="center"><strong>Tabla 2:</strong> <em>Requisitos funcionales y no funcionales del sistema</em></p>
 
 | Grupo | ID | Descripción |
 | :--- | :--- | :--- |
@@ -89,7 +108,11 @@ Para contextualizar el prototipo frente a soluciones de mercado, se analizaron t
 
 ### 2.3 Casos de Uso
 
+En las tablas 3 a 6 se presentan los casos de uso principales que describen el comportamiento del sistema ante la interacción con el usuario, eventos del entorno y comunicaciones remotas.
+
 #### Caso de Uso 01: Monitoreo y Control Térmico en Modo Normal
+
+<p align="center"><strong>Tabla 3:</strong> <em>Especificación del Caso de Uso 01 - Monitoreo y Control Térmico en Modo Normal.</em></p>
 
 | Campo | Detalles |
 | :--- | :--- |
@@ -103,6 +126,8 @@ Para contextualizar el prototipo frente a soluciones de mercado, se analizaron t
 
 #### Caso de Uso 02: Configuración de Setpoint y Umbrales (`SET_UP`)
 
+<p align="center"><strong>Tabla 4:</strong> <em>Especificación del Caso de Uso 02 - Configuración de Setpoint y Umbrales (SET_UP).</em></p>
+
 | Campo | Detalles |
 | :--- | :--- |
 | **Caso de Uso** | `UC-02: Configuración de Setpoint y Umbrales (SET_UP)` |
@@ -115,6 +140,8 @@ Para contextualizar el prototipo frente a soluciones de mercado, se analizaron t
 
 #### Caso de Uso 03: Gestión de Alarma y Tapa Abierta
 
+<p align="center"><strong>Tabla 5:</strong> <em>Especificación del Caso de Uso 03 - Gestión de Alarma y Tapa Abierta.</em></p>
+
 | Campo | Detalles |
 | :--- | :--- |
 | **Caso de Uso** | `UC-03: Gestión de Alarma y Tapa Abierta` |
@@ -126,6 +153,8 @@ Para contextualizar el prototipo frente a soluciones de mercado, se analizaron t
 ---
 
 #### Caso de Uso 04: Telemetría y Control Remoto Bluetooth HM-10
+
+<p align="center"><strong>Tabla 6:</strong> <em>Especificación del Caso de Uso 04 - Telemetría y Control Remoto Bluetooth HM-10.</em></p>
 
 | Campo | Detalles |
 | :--- | :--- |
