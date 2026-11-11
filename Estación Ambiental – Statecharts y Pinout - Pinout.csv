@@ -1,0 +1,24 @@
+﻿Componente,Pin del módulo,Pin STM32,Placa: conector Arduino,Placa: pin morpho,Notas
+LM35,Vout,PA0 (ADC1_IN0),CN8 · A0,CN7-28,
+LM35,'+Vs / GND,5V / GND,CN6 · 5V / GND,CN7-18 / CN7-20,
+LDR,Punto medio del divisor,PA1 (ADC1_IN1),CN8 · A1,CN7-30,LDR a 3V3 y 10 kΩ a GND: más luz = más cuentas
+Teclado 1x4,Común,GND,CN6 · GND,CN7-22,Entradas con pull-up interno
+Teclado 1x4,Tecla 1 (SETUP / + / MUTE),PA8,CN9 · D7,CN10-23,
+Teclado 1x4,Tecla 2 (− / RESET),PB10,CN9 · D6,CN10-25,
+Teclado 1x4,Tecla 3 (GUARDAR),PB5,CN9 · D4,CN10-29,
+Teclado 1x4,Tecla 4 (CANCELAR),PC0,CN8 · A5,CN7-38,
+LED RGB,R,PA6,CN5 · D12,CN10-13,"Cátodo común, resistencia ~220 Ω"
+LED RGB,G,PA7,CN5 · D11,CN10-15,"Cátodo común, resistencia ~220 Ω"
+LED RGB,B,PB6,CN5 · D10,CN10-17,"Cátodo común, resistencia ~220 Ω"
+Módulo relé,IN,PB0,CN8 · A3,CN7-34,Si es activo en bajo: RELAY_ON = GPIO_PIN_RESET en board.h
+Buzzer activo,'+,PC7,CN5 · D9,CN10-19,Con transistor si consume más de ~8 mA
+HM-10,TXD,PA10 (USART1_RX),CN9 · D2,CN10-33,9600 8N1
+HM-10,RXD,PA9 (USART1_TX),CN5 · D8,CN10-21,9600 8N1
+HM-10,STATE (opcional),PC1,CN8 · A4,CN7-36,Desactivado por defecto (BLE_STATE_PIN_USED = 0)
+HM-10,VCC / GND,3V3 o 5V según el módulo / GND,CN6 · 3V3 o 5V / GND,CN7-16 o CN7-18 / CN7-19,
+LCD 16x2 + PCF8574,SDA,PB9 (I2C1_SDA),CN5 · D14,CN10-5,Dirección 0x27 (PCF8574A: 0x3F)
+LCD 16x2 + PCF8574,SCL,PB8 (I2C1_SCL),CN5 · D15,CN10-3,"I2C1 remapeado, 100 kHz"
+LCD 16x2 + PCF8574,VCC / GND,5V / GND,CN6 · 5V / GND,CN7-18 / CN7-8,
+EEPROM 24Cxx,SDA / SCL,PB9 / PB8 (mismo bus que el LCD),CN5 · D14 / D15,CN10-5 / CN10-3,"Dirección 0x50; 24C02 usa I2C_MEMADD_SIZE_8BIT"
+EEPROM 24Cxx,"A0, A1, A2 / WP",GND,CN6 · GND,CN7-8,
+LD2 (en la placa),Heartbeat,PA5,CN5 · D13 (LED de la placa),CN10-11,
