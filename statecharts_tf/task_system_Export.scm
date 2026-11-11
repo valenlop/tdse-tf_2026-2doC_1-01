@@ -28,8 +28,8 @@
           "y": -70
         },
         "size": {
-          "width": 435,
-          "height": 117
+          "height": 117,
+          "width": 435
         },
         "type": "State",
         "attrs": {
@@ -50,8 +50,8 @@
           "y": 117
         },
         "size": {
-          "width": 237,
-          "height": 159
+          "height": 159,
+          "width": 237
         },
         "type": "State",
         "attrs": {
@@ -539,8 +539,8 @@
           "y": -302
         },
         "size": {
-          "width": 233,
-          "height": 142
+          "height": 142,
+          "width": 233
         },
         "type": "State",
         "attrs": {
@@ -759,7 +759,7 @@
           {
             "attrs": {
               "text": {
-                "text": "EV_REQ_RESET [T_medida <= (T_max - dT) && LDR_val <= UMBRAL_LUZ]"
+                "text": "EV_SENSE_TICK [T_medida <= (T_max - dT) && LDR_val <= UMBRAL_LUZ]"
               }
             },
             "position": {
