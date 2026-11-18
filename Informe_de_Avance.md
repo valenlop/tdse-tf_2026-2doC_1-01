@@ -7,7 +7,7 @@
 
 **Materia:** Taller de Sistemas Embebidos (TdSE)  
 **Placa Base:** STM32 NUCLEO-F103RB  
-**Fecha:** 18/11/2026  
+**Fecha:** 20/11/2026  
 **Cuatrimestre:** 2do Cuatrimestre 2026  
 
 ### Integrantes
