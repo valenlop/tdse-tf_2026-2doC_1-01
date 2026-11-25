@@ -3,7 +3,7 @@ LM35,Vout,PA0 (ADC1_IN0),CN8 · A0,CN7-28,
 LM35 (sensor temp),'+Vs / GND,5V / GND,CN6 · 5V / GND,CN7-18 / CN7-20,
 LDR (sensor de luz),Punto medio del divisor,PA1 (ADC1_IN1),CN8 · A1,CN7-30,LDR a 3V3 y 10 kΩ a GND: más luz = más cuentas
 Teclado 1x4,Común,GND,CN6 · GND,CN7-22,Entradas con pull-up interno
-Teclado 1x4,Tecla 1 ( + / MUTE) Boton 3,PA8,CN9 · D7,CN10-23,
+Teclado 1x4,Tecla 1 ( + ) Boton 3,PA8,CN9 · D7,CN10-23,
 Teclado 1x4,Tecla 2 (−) Boton 4,PB10,CN9 · D6,CN10-25,
 Teclado 1x4,Tecla 3 (SETUP / GUARDAR) Boton 1,PB5,CN9 · D4,CN10-29,
 Teclado 1x4,Tecla 4 (CANCELAR) Boton 2,PC0,CN8 · A5,CN7-38,
