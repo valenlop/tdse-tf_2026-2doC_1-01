@@ -95,15 +95,14 @@
   canvas { display: block; width: 100%; height: 64px; margin-top: 12px; }
   .updated { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
   .stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
   .stat .sub { font-size: 12px; color: var(--muted); }
   .bar { height: 6px; border-radius: 999px; background: var(--border); margin-top: 8px; overflow: hidden; }
   .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
   .relay-on { color: var(--heating); }
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
     .grid { grid-template-columns: 1fr 1fr; }
-    .grid .stat:last-child { grid-column: span 2; }
   }
 
   .controls h2, details summary { font-size: 14px; margin: 0 0 12px; }
@@ -114,6 +113,7 @@
   .field span { color: var(--muted); font-size: 14px; }
   .field:focus-within { border-color: var(--accent); }
   .row button.wide { flex: 1; }
+  .row .tag { width: 52px; flex: none; align-self: center; font-size: 13px; font-weight: 600; color: var(--muted); }
   .feedback { font-size: 13px; min-height: 20px; margin-top: 10px; color: var(--muted); }
   .feedback.ok { color: var(--normal); }
   .feedback.err { color: var(--alarma); }
@@ -177,6 +177,11 @@
       <div class="sub">Tmin (calienta por debajo)</div>
     </div>
     <div class="card stat">
+      <div class="label">Alarma</div>
+      <div class="value" id="tmax">--.- °C</div>
+      <div class="sub">Tmax (alarma por encima)</div>
+    </div>
+    <div class="card stat">
       <div class="label">Luz</div>
       <div class="value" id="ldr">----</div>
       <div class="bar"><i id="ldrBar"></i></div>
@@ -192,11 +197,20 @@
   <section class="card controls">
     <h2>Comandos</h2>
     <div class="row">
+      <span class="tag">Tmin</span>
       <label class="field" for="setpoint">
         <input id="setpoint" type="number" inputmode="decimal" step="0.5" placeholder="Nuevo setpoint">
         <span>°C</span>
       </label>
       <button id="sendSet" type="button" disabled>Enviar</button>
+    </div>
+    <div class="row">
+      <span class="tag">Tmax</span>
+      <label class="field" for="tmaxInput">
+        <input id="tmaxInput" type="number" inputmode="decimal" step="0.5" placeholder="Nueva alarma">
+        <span>°C</span>
+      </label>
+      <button id="sendTmax" type="button" disabled>Enviar</button>
     </div>
     <div class="row">
       <button id="sendSetup" class="ghost wide" type="button" disabled>Entrar a SETUP en la placa</button>
@@ -207,7 +221,7 @@
       <summary>Consola</summary>
       <div id="log" aria-live="off"></div>
       <div class="row" style="margin-top:10px">
-        <label class="field" for="raw"><input id="raw" type="text" placeholder="Comando libre (ej. SET_T=25)" autocapitalize="characters" autocomplete="off"></label>
+        <label class="field" for="raw"><input id="raw" type="text" placeholder="Comando libre (ej. SET_TMAX=40)" autocapitalize="characters" autocomplete="off"></label>
         <button id="sendRaw" class="ghost" type="button" disabled>Enviar</button>
       </div>
     </details>
@@ -225,7 +239,7 @@
   const CHAR = 0xffe1;
   const CHUNK = 20;                 // bytes por escritura BLE (MTU por defecto)
   const HISTORY = 120;              // puntos del gráfico (1 por segundo)
-  const LDR_UMBRAL = 500;           // UMBRAL_LUZ_INI del firmware
+  const LDR_UMBRAL = 2000;          // UMBRAL_LUZ_INI del firmware
 
   const MODE_INFO = {
     INIT:    { text: "INICIANDO", color: "--init" },
@@ -240,8 +254,8 @@
     status: $("status"), connect: $("connect"), demo: $("demo"),
     unsupported: $("unsupported"), alarm: $("alarm"), alarmText: $("alarmText"), alarmDismiss: $("alarmDismiss"),
     hero: $("hero"), temp: $("temp"), mode: $("mode"), updated: $("updated"), chart: $("chart"),
-    tset: $("tset"), ldr: $("ldr"), ldrBar: $("ldrBar"), relay: $("relay"),
-    setpoint: $("setpoint"), sendSet: $("sendSet"), sendSetup: $("sendSetup"), feedback: $("feedback"),
+    tset: $("tset"), tmax: $("tmax"), ldr: $("ldr"), ldrBar: $("ldrBar"), relay: $("relay"),
+    setpoint: $("setpoint"), sendSet: $("sendSet"), tmaxInput: $("tmaxInput"), sendTmax: $("sendTmax"), sendSetup: $("sendSetup"), feedback: $("feedback"),
     log: $("log"), raw: $("raw"), sendRaw: $("sendRaw")
   };
 
@@ -273,7 +287,7 @@
   }
 
   function setConnected(on) {
-    ui.sendSet.disabled = ui.sendSetup.disabled = ui.sendRaw.disabled = !on;
+    ui.sendSet.disabled = ui.sendTmax.disabled = ui.sendSetup.disabled = ui.sendRaw.disabled = !on;
     ui.connect.textContent = on && !demo ? "Desconectar" : "Conectar al HM-10";
     ui.demo.textContent = demo ? "Salir del demo" : "Modo demo";
     ui.connect.disabled = !bleSupported || !!demo;
@@ -355,23 +369,24 @@
   }
 
   // ---- Protocolo del firmware ---------------------------------------------
-  // Telemetría: T=23.5;L=512;TS=25.0;R=0;M=NORMAL
-  const TELEMETRY = /^T=(-?[\d.]+);L=(\d+);TS=(-?[\d.]+);R=([01]);M=([A-Z_]+)$/;
+  // Telemetría: T=23.5;L=512;TS=25.0;TM=40.0;R=0;M=NORMAL  (TM opcional: firmware viejo no lo manda)
+  const TELEMETRY = /^T=(-?[\d.]+);L=(\d+);TS=(-?[\d.]+)(?:;TM=(-?[\d.]+))?;R=([01]);M=([A-Z_]+)$/;
 
   function handleLine(line) {
     const m = TELEMETRY.exec(line);
-    if (m) { log(line); onTelemetry(+m[1], +m[2], +m[3], m[4] === "1", m[5]); return; }
+    if (m) { log(line); onTelemetry(+m[1], +m[2], +m[3], m[4] === undefined ? null : +m[4], m[5] === "1", m[6]); return; }
 
     log(line);
     if (line === "ACK") feedback("✓ Comando aceptado por la placa.", "ok");
-    else if (line.startsWith("NACK")) feedback("✗ La placa rechazó el comando (inválido o fuera de rango).", "err");
+    else if (line.startsWith("NACK")) feedback("✗ La placa rechazó el comando: inválido o fuera de rango (Tmax tiene que ser mayor o igual que Tmin).", "err");
     else if (line.startsWith("ALERTA")) showAlarm(line.replace(/^ALERTA:\s*/, ""));
   }
 
-  function onTelemetry(t, l, ts, relay, mode) {
+  function onTelemetry(t, l, ts, tm, relay, mode) {
     lastUpdate = Date.now();
     ui.temp.textContent = t.toFixed(1);
     ui.tset.textContent = `${ts.toFixed(1)} °C`;
+    ui.tmax.textContent = tm === null ? "--.- °C" : `${tm.toFixed(1)} °C`;
     ui.ldr.textContent = String(l).padStart(4, "0");
     ui.ldrBar.style.width = Math.min(100, (l / 4095) * 100) + "%";
     ui.ldrBar.style.background = l > LDR_UMBRAL ? "var(--alarma)" : "var(--accent)";
@@ -464,23 +479,25 @@
     d.l = Math.max(0, Math.round(d.l + (Math.random() - 0.5) * 20));
     const prev = d.mode;
     const alarm = d.t > d.tmax || d.l > LDR_UMBRAL;
-    if (d.mode === "SETUP") { if (alarm) d.mode = "ALARMA"; else if (Date.now() > d.setupUntil) d.mode = "NORMAL"; }
+    if (d.mode === "SETUP") { if (Date.now() > d.setupUntil) d.mode = alarm ? "ALARMA" : "NORMAL"; }
     else if (d.mode === "ALARMA") { if (d.t <= d.tmax - d.dt && d.l <= LDR_UMBRAL) d.mode = "NORMAL"; }
     else if (alarm) d.mode = "ALARMA";
     else if (d.mode === "NORMAL" && d.t < d.ts - d.dt) d.mode = "HEATING";
     else if (d.mode === "HEATING" && d.t >= d.ts) d.mode = "NORMAL";
     d.relay = d.mode === "HEATING";
     if (d.mode === "ALARMA" && prev !== "ALARMA") handleLine(d.t > d.tmax ? "ALERTA: ALT TEMP!" : "ALERTA: TAPA ABIERTA!");
-    handleLine(`T=${d.t.toFixed(1)};L=${d.l};TS=${d.ts.toFixed(1)};R=${d.relay ? 1 : 0};M=${d.mode}`);
+    handleLine(`T=${d.t.toFixed(1)};L=${d.l};TS=${d.ts.toFixed(1)};TM=${d.tmax.toFixed(1)};R=${d.relay ? 1 : 0};M=${d.mode}`);
   }
 
   function demoReceive(cmd) {
     const c = cmd.toUpperCase();
     setTimeout(() => {
       const m = /^SET_T=(-?\d+(?:\.\d+)?)$/.exec(c);
-      if (m && +m[1] >= 0 && +m[1] <= 200) { demo.ts = +m[1]; handleLine("ACK"); }
-      else if (c === "MODE=SETUP") { if (demo.mode !== "ALARMA") { demo.mode = "SETUP"; demo.setupUntil = Date.now() + 10000; } handleLine("ACK"); }
-      else if (c === "TAPA") { demo.l = 3000; setTimeout(() => (demo.l = 120), 4000); handleLine("ACK"); }
+      const mx = /^SET_TMAX=(-?\d+(?:\.\d+)?)$/.exec(c);
+      if (m && +m[1] >= 0 && +m[1] <= 200 && +m[1] <= demo.tmax) { if (demo.mode === "NORMAL" || demo.mode === "HEATING") demo.ts = +m[1]; handleLine("ACK"); }
+      else if (mx && +mx[1] >= demo.ts && +mx[1] <= 200) { if (demo.mode === "NORMAL" || demo.mode === "HEATING") demo.tmax = +mx[1]; handleLine("ACK"); }
+      else if (c === "MODE=SETUP") { demo.mode = "SETUP"; demo.setupUntil = Date.now() + 10000; handleLine("ACK"); }
+      else if (c === "TAPA") { demo.l = 3500; setTimeout(() => (demo.l = 120), 4000); handleLine("ACK"); }
       else handleLine("NACK: INVALID_CMD");
     }, 150);
   }
@@ -498,6 +515,14 @@
   }
   ui.sendSet.addEventListener("click", sendSetpoint);
   ui.setpoint.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendSet.disabled) sendSetpoint(); });
+  function sendTmax() {
+    const v = parseFloat(String(ui.tmaxInput.value).replace(",", "."));
+    if (!Number.isFinite(v)) { feedback("Ingresá un número, por ejemplo 40", "err"); return; }
+    feedback("Enviando…");
+    send(`SET_TMAX=${(Math.round(v * 10) / 10).toFixed(1)}`);
+  }
+  ui.sendTmax.addEventListener("click", sendTmax);
+  ui.tmaxInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendTmax.disabled) sendTmax(); });
   ui.sendSetup.addEventListener("click", () => { feedback("Enviando…"); send("MODE=SETUP"); });
   ui.sendRaw.addEventListener("click", () => { send(ui.raw.value); ui.raw.value = ""; });
   ui.raw.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendRaw.disabled) { send(ui.raw.value); ui.raw.value = ""; } });
