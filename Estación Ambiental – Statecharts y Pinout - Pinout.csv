@@ -10,7 +10,7 @@ Teclado 1x4,Tecla 4 (CANCELAR) Boton 2,PC0,CN8 · A5,
 LED RGB,R,PA6,CN5 · D12,"Cátodo común, resistencia ~220 Ω"
 LED RGB,G,PA7,CN5 · D11,"Cátodo común, resistencia ~220 Ω"
 LED RGB,B,PB6,CN5 · D10,"Cátodo común, resistencia ~220 Ω"
-Módulo relé,IN,PB0,CN8 · A3,Si es activo en bajo: RELAY_ON = GPIO_PIN_RESET en board.h
+Módulo relé,IN,PB0,CN8 · A3,Si es activo en bajo: GPIO_PIN_SET en main.c
 Buzzer activo,'+,PC7,CN5 · D9,Con transistor si consume más de ~8 mA
 HM-10,TXD,PA10 (USART1_RX),CN9 · D2,9600 8N1
 HM-10,RXD,PA9 (USART1_TX),CN5 · D8,9600 8N1
