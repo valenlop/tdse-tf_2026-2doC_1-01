@@ -1,4 +1,4 @@
-﻿Componente,Pin del módulo,Pin STM32,Placa: conector Arduino,Notas
+﻿Componente,Pin del módulo,Pin STM32,Placa: conector Arduino, ,Notas
 LM35,Vout,PA0 (ADC1_IN0),CN8 · A0,
 LM35 (sensor temp),'+Vs / GND,5V / GND,CN6 · 5V / GND,
 LDR (sensor de luz),Punto medio del divisor,PA1 (ADC1_IN1),CN7-30,LDR a 3V3 y 10 kΩ a GND: más luz = más cuentas
