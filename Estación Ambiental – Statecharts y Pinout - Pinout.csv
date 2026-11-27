@@ -20,4 +20,3 @@ LCD 16x2 + PCF8574,SCL,PB8 (I2C1_SCL),CN5 · D15,"I2C1 remapeado, 100 kHz"
 LCD 16x2 + PCF8574,VCC / GND,5V / GND,CN6 · 5V / GND,
 EEPROM 24Cxx,SDA / SCL,PB9 / PB8 (mismo bus que el LCD),CN5 · D14 / D15,"Dirección 0x50; 24C02 usa I2C_MEMADD_SIZE_8BIT"
 EEPROM 24Cxx,"A0, A1, A2 / WP",GND,CN6 · GND,
-LD2 (en la placa),Heartbeat,PA5,CN5 · D13 (LED de la placa),
