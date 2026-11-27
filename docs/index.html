@@ -212,9 +212,6 @@
       </label>
       <button id="sendTmax" type="button" disabled>Enviar</button>
     </div>
-    <div class="row">
-      <button id="sendSetup" class="ghost wide" type="button" disabled>Entrar a SETUP en la placa</button>
-    </div>
     <div class="feedback" id="feedback" aria-live="polite"></div>
 
     <details>
@@ -255,7 +252,7 @@
     unsupported: $("unsupported"), alarm: $("alarm"), alarmText: $("alarmText"), alarmDismiss: $("alarmDismiss"),
     hero: $("hero"), temp: $("temp"), mode: $("mode"), updated: $("updated"), chart: $("chart"),
     tset: $("tset"), tmax: $("tmax"), ldr: $("ldr"), ldrBar: $("ldrBar"), relay: $("relay"),
-    setpoint: $("setpoint"), sendSet: $("sendSet"), tmaxInput: $("tmaxInput"), sendTmax: $("sendTmax"), sendSetup: $("sendSetup"), feedback: $("feedback"),
+    setpoint: $("setpoint"), sendSet: $("sendSet"), tmaxInput: $("tmaxInput"), sendTmax: $("sendTmax"), feedback: $("feedback"),
     log: $("log"), raw: $("raw"), sendRaw: $("sendRaw")
   };
 
@@ -287,7 +284,7 @@
   }
 
   function setConnected(on) {
-    ui.sendSet.disabled = ui.sendTmax.disabled = ui.sendSetup.disabled = ui.sendRaw.disabled = !on;
+    ui.sendSet.disabled = ui.sendTmax.disabled = ui.sendRaw.disabled = !on;
     ui.connect.textContent = on && !demo ? "Desconectar" : "Conectar al HM-10";
     ui.demo.textContent = demo ? "Salir del demo" : "Modo demo";
     ui.connect.disabled = !bleSupported || !!demo;
@@ -494,8 +491,8 @@
     setTimeout(() => {
       const m = /^SET_T=(-?\d+(?:\.\d+)?)$/.exec(c);
       const mx = /^SET_TMAX=(-?\d+(?:\.\d+)?)$/.exec(c);
-      if (m && +m[1] >= 0 && +m[1] <= 200 && +m[1] <= demo.tmax) { if (demo.mode === "NORMAL" || demo.mode === "HEATING") demo.ts = +m[1]; handleLine("ACK"); }
-      else if (mx && +mx[1] >= demo.ts && +mx[1] <= 200) { if (demo.mode === "NORMAL" || demo.mode === "HEATING") demo.tmax = +mx[1]; handleLine("ACK"); }
+      if (m && +m[1] >= 0 && +m[1] <= 200 && +m[1] <= demo.tmax) { if (demo.mode !== "SETUP") demo.ts = +m[1]; handleLine("ACK"); }
+      else if (mx && +mx[1] >= demo.ts && +mx[1] <= 200) { if (demo.mode !== "SETUP") demo.tmax = +mx[1]; handleLine("ACK"); }
       else if (c === "MODE=SETUP") { demo.mode = "SETUP"; demo.setupUntil = Date.now() + 10000; handleLine("ACK"); }
       else if (c === "TAPA") { demo.l = 3500; setTimeout(() => (demo.l = 120), 4000); handleLine("ACK"); }
       else handleLine("NACK: INVALID_CMD");
@@ -523,7 +520,6 @@
   }
   ui.sendTmax.addEventListener("click", sendTmax);
   ui.tmaxInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendTmax.disabled) sendTmax(); });
-  ui.sendSetup.addEventListener("click", () => { feedback("Enviando…"); send("MODE=SETUP"); });
   ui.sendRaw.addEventListener("click", () => { send(ui.raw.value); ui.raw.value = ""; });
   ui.raw.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendRaw.disabled) { send(ui.raw.value); ui.raw.value = ""; } });
 
