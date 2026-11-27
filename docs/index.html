@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Estación Ambiental</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent-text: #ffffff;
+    --normal: #16a34a;
+    --heating: #2563eb;
+    --setup: #ca8a04;
+    --alarma: #dc2626;
+    --init: #64748b;
+    --mode: var(--init);
+    --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 16px rgba(15, 23, 42, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1120;
+      --card: #111a2e;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #1f2a44;
+      --accent: #3b82f6;
+      --normal: #22c55e;
+      --heating: #60a5fa;
+      --setup: #eab308;
+      --alarma: #f87171;
+      --init: #94a3b8;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  header h1 { font-size: 18px; margin: 0; flex: 1; line-height: 1.2; }
+  header h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--border); color: var(--muted); white-space: nowrap;
+  }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .pill.on { color: var(--normal); }
+  .pill.busy { color: var(--setup); }
+
+  button {
+    font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 14px;
+    background: var(--accent); color: var(--accent-text); cursor: pointer; min-height: 42px;
+  }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+
+  .banner {
+    display: none; padding: 12px 14px; border-radius: 12px; margin-bottom: 12px; font-weight: 600;
+    border: 1px solid; align-items: center; gap: 10px;
+  }
+  .banner.show { display: flex; }
+  .banner.warn { background: color-mix(in srgb, var(--setup) 12%, var(--card)); border-color: color-mix(in srgb, var(--setup) 40%, transparent); color: var(--text); font-weight: 500; }
+  .banner.alarm { background: var(--alarma); border-color: var(--alarma); color: #fff; animation: pulse 1s ease-in-out infinite; }
+  .banner .grow { flex: 1; }
+  .banner button { background: rgba(255, 255, 255, .2); color: #fff; min-height: 34px; padding: 6px 12px; }
+  @keyframes pulse { 50% { opacity: .78; } }
+  @media (prefers-reduced-motion: reduce) { .banner.alarm { animation: none; } }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+
+  .hero { position: relative; overflow: hidden; margin-bottom: 12px; border-top: 4px solid var(--mode); }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .temp { font-size: 56px; font-weight: 700; line-height: 1; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .temp span { font-size: 24px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+  .mode {
+    font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px;
+    background: color-mix(in srgb, var(--mode) 15%, transparent); color: var(--mode); white-space: nowrap;
+  }
+  canvas { display: block; width: 100%; height: 64px; margin-top: 12px; }
+  .updated { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+  .stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat .sub { font-size: 12px; color: var(--muted); }
+  .bar { height: 6px; border-radius: 999px; background: var(--border); margin-top: 8px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  .relay-on { color: var(--heating); }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+    .grid .stat:last-child { grid-column: span 2; }
+  }
+
+  .controls h2, details summary { font-size: 14px; margin: 0 0 12px; }
+  .row { display: flex; gap: 8px; }
+  .row + .row { margin-top: 10px; }
+  .field { flex: 1; min-width: 0; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); padding: 0 12px; min-height: 42px; }
+  .field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 16px; outline: none; }
+  .field span { color: var(--muted); font-size: 14px; }
+  .field:focus-within { border-color: var(--accent); }
+  .row button.wide { flex: 1; }
+  .feedback { font-size: 13px; min-height: 20px; margin-top: 10px; color: var(--muted); }
+  .feedback.ok { color: var(--normal); }
+  .feedback.err { color: var(--alarma); }
+
+  details { margin-top: 12px; }
+  details summary { cursor: pointer; margin: 0; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "▾"; color: var(--muted); }
+  details[open] summary::after { content: "▴"; }
+  #log {
+    margin-top: 12px; height: 180px; overflow-y: auto; padding: 10px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all;
+  }
+  #log .tx { color: var(--accent); }
+  #log .sys { color: var(--muted); }
+  #log .err { color: var(--alarma); }
+
+  footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 16px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Estación Ambiental<small>NUCLEO-F103RB · HM-10</small></h1>
+    <span id="status" class="pill">Desconectado</span>
+  </header>
+
+  <div id="unsupported" class="banner warn">
+    <span class="grow">Este navegador no soporta Web Bluetooth. Abrí la página en <b>Chrome</b> (Android o PC) desde una dirección <b>https://</b>. En iPhone no funciona. Mientras tanto podés usar el modo demo.</span>
+  </div>
+
+  <div id="alarm" class="banner alarm" role="alert">
+    <span class="grow" id="alarmText">ALARMA</span>
+    <button id="alarmDismiss" type="button">OK</button>
+  </div>
+
+  <div class="row" style="margin-bottom:12px">
+    <button id="connect" class="wide" type="button">Conectar al HM-10</button>
+    <button id="demo" class="ghost" type="button">Modo demo</button>
+  </div>
+
+  <section class="card hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="label">Temperatura</div>
+        <div class="temp"><b id="temp">--.-</b><span>°C</span></div>
+      </div>
+      <div class="mode" id="mode">SIN DATOS</div>
+    </div>
+    <canvas id="chart" aria-label="Temperatura de los últimos 2 minutos"></canvas>
+    <div class="updated" id="updated">Esperando telemetría…</div>
+  </section>
+
+  <section class="grid">
+    <div class="card stat">
+      <div class="label">Setpoint</div>
+      <div class="value" id="tset">--.- °C</div>
+      <div class="sub">Tmin (calienta por debajo)</div>
+    </div>
+    <div class="card stat">
+      <div class="label">Luz</div>
+      <div class="value" id="ldr">----</div>
+      <div class="bar"><i id="ldrBar"></i></div>
+      <div class="sub">cuentas ADC (0–4095)</div>
+    </div>
+    <div class="card stat">
+      <div class="label">Calefactor</div>
+      <div class="value" id="relay">--</div>
+      <div class="sub">Relé</div>
+    </div>
+  </section>
+
+  <section class="card controls">
+    <h2>Comandos</h2>
+    <div class="row">
+      <label class="field" for="setpoint">
+        <input id="setpoint" type="number" inputmode="decimal" step="0.5" placeholder="Nuevo setpoint">
+        <span>°C</span>
+      </label>
+      <button id="sendSet" type="button" disabled>Enviar</button>
+    </div>
+    <div class="row">
+      <button id="sendSetup" class="ghost wide" type="button" disabled>Entrar a SETUP en la placa</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <details>
+      <summary>Consola</summary>
+      <div id="log" aria-live="off"></div>
+      <div class="row" style="margin-top:10px">
+        <label class="field" for="raw"><input id="raw" type="text" placeholder="Comando libre (ej. SET_T=25)" autocapitalize="characters" autocomplete="off"></label>
+        <button id="sendRaw" class="ghost" type="button" disabled>Enviar</button>
+      </div>
+    </details>
+  </section>
+
+  <footer>TdSE · Trabajo Final 2026 · Web Bluetooth (servicio FFE0 / característica FFE1)</footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---- HM-10 BLE UART ------------------------------------------------------
+  const SERVICE = 0xffe0;
+  const CHAR = 0xffe1;
+  const CHUNK = 20;                 // bytes por escritura BLE (MTU por defecto)
+  const HISTORY = 120;              // puntos del gráfico (1 por segundo)
+  const LDR_UMBRAL = 500;           // UMBRAL_LUZ_INI del firmware
+
+  const MODE_INFO = {
+    INIT:    { text: "INICIANDO", color: "--init" },
+    NORMAL:  { text: "NORMAL",    color: "--normal" },
+    HEATING: { text: "CALENTANDO", color: "--heating" },
+    SETUP:   { text: "SETUP",     color: "--setup" },
+    ALARMA:  { text: "ALARMA",    color: "--alarma" }
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const ui = {
+    status: $("status"), connect: $("connect"), demo: $("demo"),
+    unsupported: $("unsupported"), alarm: $("alarm"), alarmText: $("alarmText"), alarmDismiss: $("alarmDismiss"),
+    hero: $("hero"), temp: $("temp"), mode: $("mode"), updated: $("updated"), chart: $("chart"),
+    tset: $("tset"), ldr: $("ldr"), ldrBar: $("ldrBar"), relay: $("relay"),
+    setpoint: $("setpoint"), sendSet: $("sendSet"), sendSetup: $("sendSetup"), feedback: $("feedback"),
+    log: $("log"), raw: $("raw"), sendRaw: $("sendRaw")
+  };
+
+  let device = null, characteristic = null, rxBuffer = "";
+  let demoTimer = null, demo = null;
+  let lastUpdate = 0, history = [], alarmDismissed = false, lastMode = null, alarmReason = "";
+  const encoder = new TextEncoder(), decoder = new TextDecoder();
+
+  const bleSupported = !!(navigator.bluetooth && window.isSecureContext);
+  if (!bleSupported) {
+    ui.unsupported.classList.add("show");
+    ui.connect.disabled = true;
+  }
+
+  // ---- Log -----------------------------------------------------------------
+  function log(text, cls) {
+    const line = document.createElement("div");
+    if (cls) line.className = cls;
+    const t = new Date().toLocaleTimeString("es-AR", { hour12: false });
+    line.textContent = `${t}  ${cls === "tx" ? "→ " : cls === "sys" || cls === "err" ? "· " : "← "}${text}`;
+    ui.log.appendChild(line);
+    while (ui.log.childNodes.length > 300) ui.log.removeChild(ui.log.firstChild);
+    ui.log.scrollTop = ui.log.scrollHeight;
+  }
+
+  function setStatus(text, cls) {
+    ui.status.textContent = text;
+    ui.status.className = "pill" + (cls ? " " + cls : "");
+  }
+
+  function setConnected(on) {
+    ui.sendSet.disabled = ui.sendSetup.disabled = ui.sendRaw.disabled = !on;
+    ui.connect.textContent = on && !demo ? "Desconectar" : "Conectar al HM-10";
+    ui.demo.textContent = demo ? "Salir del demo" : "Modo demo";
+    ui.connect.disabled = !bleSupported || !!demo;
+    ui.demo.disabled = !!device;
+  }
+
+  function feedback(text, cls) {
+    ui.feedback.textContent = text;
+    ui.feedback.className = "feedback" + (cls ? " " + cls : "");
+  }
+
+  // ---- Conexión BLE --------------------------------------------------------
+  async function connect() {
+    if (device && device.gatt.connected) { device.gatt.disconnect(); return; }
+    try {
+      setStatus("Buscando…", "busy");
+      device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [SERVICE]
+      });
+      device.addEventListener("gattserverdisconnected", onDisconnected);
+      setStatus("Conectando…", "busy");
+      log(`Conectando a ${device.name || "dispositivo sin nombre"}…`, "sys");
+      const server = await device.gatt.connect();
+      const service = await server.getPrimaryService(SERVICE);
+      characteristic = await service.getCharacteristic(CHAR);
+      characteristic.addEventListener("characteristicvaluechanged", onNotify);
+      await characteristic.startNotifications();
+      setStatus(device.name || "Conectado", "on");
+      log("Conectado. Esperando telemetría…", "sys");
+      feedback("");
+      setConnected(true);
+    } catch (e) {
+      const cancelled = e && e.name === "NotFoundError";
+      if (!cancelled) log(`Error: ${e.message || e}`, "err");
+      if (device && device.gatt.connected) device.gatt.disconnect();
+      device = null; characteristic = null;
+      setStatus("Desconectado");
+      setConnected(false);
+      if (!cancelled) feedback("No se pudo conectar. ¿Es un HM-10 (servicio FFE0)? Probá de nuevo.", "err");
+    }
+  }
+
+  function onDisconnected() {
+    log("Desconectado.", "sys");
+    device = null; characteristic = null; rxBuffer = "";
+    setStatus("Desconectado");
+    setConnected(false);
+  }
+
+  function onNotify(ev) {
+    rxBuffer += decoder.decode(ev.target.value);
+    let i;
+    while ((i = rxBuffer.search(/[\r\n]/)) >= 0) {
+      const line = rxBuffer.slice(0, i).trim();
+      rxBuffer = rxBuffer.slice(i + 1);
+      if (line) handleLine(line);
+    }
+    if (rxBuffer.length > 200) rxBuffer = "";
+  }
+
+  async function send(cmd) {
+    cmd = cmd.trim();
+    if (!cmd) return;
+    log(cmd, "tx");
+    if (demo) { demoReceive(cmd); return; }
+    if (!characteristic) return;
+    const bytes = encoder.encode(cmd + "\r\n");
+    try {
+      for (let off = 0; off < bytes.length; off += CHUNK) {
+        const part = bytes.slice(off, off + CHUNK);
+        if (characteristic.writeValueWithoutResponse) await characteristic.writeValueWithoutResponse(part);
+        else await characteristic.writeValue(part);
+      }
+    } catch (e) {
+      log(`Error al enviar: ${e.message || e}`, "err");
+      feedback("No se pudo enviar el comando.", "err");
+    }
+  }
+
+  // ---- Protocolo del firmware ---------------------------------------------
+  // Telemetría: T=23.5;L=512;TS=25.0;R=0;M=NORMAL
+  const TELEMETRY = /^T=(-?[\d.]+);L=(\d+);TS=(-?[\d.]+);R=([01]);M=([A-Z_]+)$/;
+
+  function handleLine(line) {
+    const m = TELEMETRY.exec(line);
+    if (m) { log(line); onTelemetry(+m[1], +m[2], +m[3], m[4] === "1", m[5]); return; }
+
+    log(line);
+    if (line === "ACK") feedback("✓ Comando aceptado por la placa.", "ok");
+    else if (line.startsWith("NACK")) feedback("✗ La placa rechazó el comando (inválido o fuera de rango).", "err");
+    else if (line.startsWith("ALERTA")) showAlarm(line.replace(/^ALERTA:\s*/, ""));
+  }
+
+  function onTelemetry(t, l, ts, relay, mode) {
+    lastUpdate = Date.now();
+    ui.temp.textContent = t.toFixed(1);
+    ui.tset.textContent = `${ts.toFixed(1)} °C`;
+    ui.ldr.textContent = String(l).padStart(4, "0");
+    ui.ldrBar.style.width = Math.min(100, (l / 4095) * 100) + "%";
+    ui.ldrBar.style.background = l > LDR_UMBRAL ? "var(--alarma)" : "var(--accent)";
+    ui.relay.textContent = relay ? "ON" : "OFF";
+    ui.relay.className = "value" + (relay ? " relay-on" : "");
+
+    const info = MODE_INFO[mode] || { text: mode, color: "--init" };
+    ui.mode.textContent = info.text;
+    document.documentElement.style.setProperty("--mode", `var(${info.color})`);
+
+    if (mode === "ALARMA" && lastMode !== "ALARMA") { alarmDismissed = false; showAlarm(alarmReason || "Alarma activa"); }
+    if (mode !== "ALARMA") hideAlarm();
+    lastMode = mode;
+
+    history.push(t);
+    if (history.length > HISTORY) history.shift();
+    drawChart();
+    updateAge();
+  }
+
+  function showAlarm(text) {
+    alarmReason = text;
+    ui.alarmText.textContent = `⚠ ${text}`;
+    if (alarmDismissed) return;
+    ui.alarm.classList.add("show");
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+  }
+
+  function hideAlarm() {
+    ui.alarm.classList.remove("show");
+    alarmDismissed = false;
+    alarmReason = "";
+  }
+
+  function updateAge() {
+    if (!lastUpdate) return;
+    const s = Math.round((Date.now() - lastUpdate) / 1000);
+    ui.updated.textContent = s <= 1 ? "Actualizado recién" : `Última telemetría hace ${s} s`;
+    ui.updated.style.color = s > 5 ? "var(--alarma)" : "";
+  }
+  setInterval(updateAge, 1000);
+
+  // ---- Gráfico -------------------------------------------------------------
+  function drawChart() {
+    const c = ui.chart, dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth, h = c.clientHeight;
+    if (c.width !== w * dpr || c.height !== h * dpr) { c.width = w * dpr; c.height = h * dpr; }
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    if (history.length < 2) return;
+    let min = Math.min(...history), max = Math.max(...history);
+    if (max - min < 2) { const mid = (max + min) / 2; min = mid - 1; max = mid + 1; }
+    const color = getComputedStyle(ui.hero).getPropertyValue("border-top-color");
+    const x = (i) => (i / (HISTORY - 1)) * w;
+    const y = (v) => h - 4 - ((v - min) / (max - min)) * (h - 8);
+    const start = HISTORY - history.length;
+    ctx.beginPath();
+    history.forEach((v, i) => (i ? ctx.lineTo(x(start + i), y(v)) : ctx.moveTo(x(start + i), y(v))));
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
+    ctx.lineTo(x(start + history.length - 1), h); ctx.lineTo(x(start), h); ctx.closePath();
+    ctx.globalAlpha = .12; ctx.fillStyle = color; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--muted");
+    ctx.font = "11px system-ui, sans-serif";
+    ctx.fillText(`${max.toFixed(1)}°`, 4, 12);
+    ctx.fillText(`${min.toFixed(1)}°`, 4, h - 4);
+  }
+  window.addEventListener("resize", drawChart);
+
+  // ---- Modo demo (simula el firmware) -------------------------------------
+  function startDemo() {
+    demo = { t: 24.0, l: 120, ts: 25.0, tmax: 40.0, dt: 1.0, mode: "NORMAL", relay: false, setupUntil: 0 };
+    setStatus("Demo", "on");
+    log("Modo demo: telemetría simulada.", "sys");
+    setConnected(true);
+    demoTimer = setInterval(demoTick, 1000);
+    demoTick();
+  }
+
+  function stopDemo() {
+    clearInterval(demoTimer); demoTimer = null; demo = null;
+    log("Fin del modo demo.", "sys");
+    setStatus("Desconectado");
+    setConnected(false);
+  }
+
+  function demoTick() {
+    const d = demo;
+    d.t += (d.relay ? 0.35 : -0.12) + (Math.random() - 0.5) * 0.1;
+    d.l = Math.max(0, Math.round(d.l + (Math.random() - 0.5) * 20));
+    const prev = d.mode;
+    const alarm = d.t > d.tmax || d.l > LDR_UMBRAL;
+    if (d.mode === "SETUP") { if (alarm) d.mode = "ALARMA"; else if (Date.now() > d.setupUntil) d.mode = "NORMAL"; }
+    else if (d.mode === "ALARMA") { if (d.t <= d.tmax - d.dt && d.l <= LDR_UMBRAL) d.mode = "NORMAL"; }
+    else if (alarm) d.mode = "ALARMA";
+    else if (d.mode === "NORMAL" && d.t < d.ts - d.dt) d.mode = "HEATING";
+    else if (d.mode === "HEATING" && d.t >= d.ts) d.mode = "NORMAL";
+    d.relay = d.mode === "HEATING";
+    if (d.mode === "ALARMA" && prev !== "ALARMA") handleLine(d.t > d.tmax ? "ALERTA: ALT TEMP!" : "ALERTA: TAPA ABIERTA!");
+    handleLine(`T=${d.t.toFixed(1)};L=${d.l};TS=${d.ts.toFixed(1)};R=${d.relay ? 1 : 0};M=${d.mode}`);
+  }
+
+  function demoReceive(cmd) {
+    const c = cmd.toUpperCase();
+    setTimeout(() => {
+      const m = /^SET_T=(-?\d+(?:\.\d+)?)$/.exec(c);
+      if (m && +m[1] >= 0 && +m[1] <= 200) { demo.ts = +m[1]; handleLine("ACK"); }
+      else if (c === "MODE=SETUP") { if (demo.mode !== "ALARMA") { demo.mode = "SETUP"; demo.setupUntil = Date.now() + 10000; } handleLine("ACK"); }
+      else if (c === "TAPA") { demo.l = 3000; setTimeout(() => (demo.l = 120), 4000); handleLine("ACK"); }
+      else handleLine("NACK: INVALID_CMD");
+    }, 150);
+  }
+
+  // ---- Eventos de la UI ----------------------------------------------------
+  ui.connect.addEventListener("click", connect);
+  ui.demo.addEventListener("click", () => (demo ? stopDemo() : startDemo()));
+  ui.alarmDismiss.addEventListener("click", () => { alarmDismissed = true; ui.alarm.classList.remove("show"); });
+
+  function sendSetpoint() {
+    const v = parseFloat(String(ui.setpoint.value).replace(",", "."));
+    if (!Number.isFinite(v)) { feedback("Ingresá un número, por ejemplo 27.5", "err"); return; }
+    feedback("Enviando…");
+    send(`SET_T=${(Math.round(v * 10) / 10).toFixed(1)}`);
+  }
+  ui.sendSet.addEventListener("click", sendSetpoint);
+  ui.setpoint.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendSet.disabled) sendSetpoint(); });
+  ui.sendSetup.addEventListener("click", () => { feedback("Enviando…"); send("MODE=SETUP"); });
+  ui.sendRaw.addEventListener("click", () => { send(ui.raw.value); ui.raw.value = ""; });
+  ui.raw.addEventListener("keydown", (e) => { if (e.key === "Enter" && !ui.sendRaw.disabled) { send(ui.raw.value); ui.raw.value = ""; } });
+
+  setConnected(false);
+  log(bleSupported ? "Listo. Tocá «Conectar al HM-10»." : "Web Bluetooth no disponible en este navegador.", "sys");
+})();
+</script>
+</body>
+</html>
